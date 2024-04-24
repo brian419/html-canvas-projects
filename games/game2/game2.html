@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Placeholder Title</title>
-<link rel="stylesheet" href="game2.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <link rel="stylesheet" href="game2.css">
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div id="welcomeScreen">
+        <h1>Press Play to Start</h1>
+        <button id="startButton">Play</button>
+    </div>
+    <div id="gameScreen" style="display: none;">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    <div id="gameOverScreen" style="display: none;">
+        <h1>Game Over</h1>
+        <button id="restartButton">Return to Home</button>
+    </div>
     <script src="game2.js"></script>
 </body>
 </html>
