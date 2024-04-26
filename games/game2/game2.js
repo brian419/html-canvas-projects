@@ -17,6 +17,9 @@ let animationId;
 let gameIsOver = false;
 let playerVelocity = { x: 0, y: 0 };
 let spaceBarClicked = false;
+let playerSpeed = 1;
+let lastDirection = 'right'; // Default direction
+let sprintTimer = null;
 
 function initGame() {
     canvas = document.getElementById('gameCanvas');
@@ -36,13 +39,15 @@ function initGame() {
     }
 
     class Sprite {
-        constructor({ position, velocity, color, width, height, health }) {
+        constructor({ type, position, velocity, color, width, height, health, stamina }) {
             this.position = position;
             this.velocity = velocity || { x: 0, y: 0 };
             this.color = color;
             this.width = width;
             this.height = height;
             this.health = health;
+            this.stamina = stamina;
+            this.type = type;
         }
 
         draw() {
@@ -52,8 +57,15 @@ function initGame() {
 
         update() {
             this.draw();
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
+            if (this.type === 'player') {
+                this.position.x += this.velocity.x * playerSpeed;
+                this.position.y += this.velocity.y * playerSpeed;
+            } else {
+                this.position.x += this.velocity.x;
+                this.position.y += this.velocity.y;
+            }
+
+            
         }
 
         isColliding(other) {
@@ -66,7 +78,9 @@ function initGame() {
         color: 'red',
         width: 50,
         height: 50,
-        health: 200
+        health: 200,
+        stamina: 10,
+        type: 'player'
     });
 
     weapon = new Sprite({
@@ -74,7 +88,8 @@ function initGame() {
         color: 'white',
         width: 60, //20
         height: 50, //50
-        health: Infinity
+        health: Infinity,
+        type: 'weapon'
     });
 
     document.addEventListener('keydown', keyDownHandler);
@@ -107,16 +122,12 @@ function initGame() {
 
             let color = 'blue';
             let health = 5;
-            enemies.push(new Sprite({ position, velocity, color, width: size, height: size, health }));
+            enemies.push(new Sprite({ position, velocity, color, width: size, height: size, health, type: 'enemy'}));
         }, 3000);
     }
 
     spawnEnemies();
-    //document.addEventListener('keydown', swingWeapon);
-    //document.addEventListener('keyup', swingWeaponFalse);
 }
-
-let lastDirection = 'right'; // Default direction
 
 function keyDownHandler(e) {
     switch (e.key) {
@@ -142,6 +153,21 @@ function keyDownHandler(e) {
             spaceBarClicked = true;
             weapon.position = { x: player.position.x + 30, y: player.position.y };  // sword to swing right
             break;
+
+        case 'm':
+            if (player.stamina > 0 && sprintTimer === null) {
+                playerSpeed = 2; // Increase player speed
+                sprintTimer = setInterval(() => { // Start the sprint duration timer
+                    player.stamina -= 1; // Decrease stamina every second
+                    if (player.stamina <= 0) {
+                        clearInterval(sprintTimer); // Clear the timer when stamina runs out
+                        sprintTimer = null; // Reset the timer variable
+                        playerSpeed = 1; // Reset player speed
+                    }
+                }, 1000); // Decrease stamina every 1000ms (1 second)
+            }
+            break;
+        
     }
 }
 
@@ -155,8 +181,11 @@ function keyUpHandler(e) {
     if (e.key == ' ') {
         spaceBarClicked = false;
     }
-
+    if (e.key == 'm') {
+        playerSpeed = 1; // Reset player speed
+    }   
 }
+
 
 function resetGame() {
     player = null;
@@ -187,7 +216,6 @@ function animate() {
         cancelAnimationFrame(animationId);
         return;
     }
-
     animationId = requestAnimationFrame(animate);
     c.clearRect(0, 0, canvas.width, canvas.height);
     player.velocity = playerVelocity;
@@ -195,9 +223,20 @@ function animate() {
     drawPlayerHealthBar();
     weapon.position.x = player.position.x + (playerVelocity.x < 0 ? - 60 : 50); // Adjust weapon position based on movement
     //weapon.draw();
-    if (spaceBarClicked) {
-        weapon.draw()
+    // if (spaceBarClicked) {
+    //     weapon.draw()
+    // }
+
+    if (spaceBarClicked && lastDirection == 'right') {
+        weapon.position = { x: player.position.x + 50, y: player.position.y };  // sword to swing right
+        weapon.draw();
     }
+    if (spaceBarClicked && lastDirection == 'left') {
+        weapon.position = { x: player.position.x - 60, y: player.position.y };  // sword to swing left
+        weapon.draw();
+    }
+
+
 
     enemies.forEach((enemy, index) => {
         enemy.update();
