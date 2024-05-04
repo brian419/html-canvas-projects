@@ -1,4 +1,5 @@
-Second Game in Godot
+Second Game in HTML CANVAS. 
+I will attempt to make this game in Godot as well. Compare and contrast the two later.
 
 Current idea: 
 
